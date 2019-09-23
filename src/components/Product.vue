@@ -1,109 +1,96 @@
 <template>
-  <v-container id="product">
-    <template v-on:keyup.38="$router.go(paginate.prev())"></template>
-    <v-row justify="space-between" class="mx-4">
-      <v-btn
-        icon
-        raised
-        :disabled="!isValidIndex(prevItem())"
-        :to="paginate.prev()"
+  <v-card tile id="product">
+    <!--<item :index="index" :item="product" :items="products"></item>-->
+      <v-img
+        :aspect-ratio="16/9"
+        :src="product.image"
+        max-width="600"
       >
-        <v-icon>mdi-chevron-left</v-icon>
-      </v-btn>
-      <v-btn
-        icon
-        raised
-        :disabled="!isValidIndex(nextItem())"
-        :to="paginate.next()"
-      >
-        <v-icon>mdi-chevron-right</v-icon>
-      </v-btn>
-    </v-row>
-    <h1>{{ product }}</h1>
-  </v-container>
+        <v-toolbar dark flat color="transparent" style="background-image: linear-gradient(rgba(25,32,72,.5), rgba(100,115,201,0));">
+          <v-btn icon @click="$router.push({ name: 'category', category_name: $route.params.category_name })">
+            <v-icon>mdi-arrow-left</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <template v-slot:placeholder>
+          <v-row
+            class="fill-height ma-0"
+            align="center"
+            justify="center"
+          >
+            <v-progress-circular indeterminate color="grey lighten-5"></v-progress-circular>
+          </v-row>
+        </template>
+      </v-img>
+      <v-card-title class="d-flex justify-space-between align-baseline font-weight-medium">
+        <span>{{ product.name }}</span>
+        <span class="title">256,00 €</span>
+      </v-card-title>
+      <v-card-text>
+        Description Lorem ipsum dolor sit amet
+      </v-card-text>
+      <v-card-text>
+        <v-divider></v-divider>
+      </v-card-text>
+
+      <v-row justify="space-between" class="mx-4 my-2">
+        <v-btn
+          icon
+          raised
+          :disabled="index - 1 < 0"
+          :to="buildUrl(prevItem)"
+        >
+          <v-icon>mdi-arrow-left</v-icon>
+        </v-btn>
+        <v-btn
+          icon
+          raised
+          :disabled="index + 1 >= products.length"
+          :to="buildUrl(nextItem)"
+        >
+          <v-icon>mdi-arrow-right</v-icon>
+        </v-btn>
+      </v-row>
+      {{ product }}
+  </v-card>
 </template>
 
 <script>
 import { mapActions, mapGetters } from 'vuex'
 import Item from './Item'
 
-class Pagination
-{
-  constructor(items, current, route) {
-    this.items = items
-    this.current = current
-    this.route = route
-  }
-  index() {
-    return this.items.indexOf(this.current)
-  }
-  isValidIndex(index) {
-    return index >= 0 && index < this.items.length - 1
-  }
-  toItem(index) {
-    return this.isValidIndex(index) ? this.items[index] : null
-  }
-  prevItem() {
-    return this.toItem(this.index() - 1)
-  }
-  nextItem() {
-    return this.toItem(this.index() + 1)
-  }
-  getUrl (item) {
-    if (item === null) {
-      return {}
-    }
-    let name = null
-    let params = Object.keys(this.route.params)
-      .map(param => ({ [param]: item[param] }))
-      .reduce((params, currentItem) => Object.assign(params, currentItem))
-    return {name, params}
-  }
-  prev () {
-    return this.getUrl(this.prevItem())
-  }
-  next () {
-    return this.getUrl(this.nextItem())
-  }
-}
-
 export default {
-  components: {
-    Item
-  },
+  components: { Item },
   data: () => ({}),
-  methods: {
-    prevItem () {
-      return this.index - 1
-    },
-    nextItem () {
-      return this.index + 1
-    }
-  },
+  methods: {},
   computed: {
-    ...mapGetters({
-      items: 'products/last',
-      item: 'products/findBy'
+    ...mapGetters('products', {
+      itemsByCategory: 'findAllBy',
+      item: 'findBy'
     }),
     product () {
       return this.item(this.$route)
     },
-    paginate () {
-      return new Pagination(this.items, this.product, this.$route)
+    products () {
+      return this.itemsByCategory({ category_name: this.$route.params.category_name })
     },
     index () {
-      return this.items.indexOf(this.product)
+      return this.products.indexOf(this.product)
     },
-    isValidIndex () {
-      return index => index >= 0 && index < this.items.length - 1
+    prevItem () {
+      return this.index - 1 >= 0 ? this.products[this.index - 1] : null
     },
-    to () {
-      return index => {
-        if (!this.isValidIndex(index)) {
+    nextItem () {
+      return this.index + 1 <= this.products.length - 1 ? this.products[this.index + 1] : null
+    },
+    buildUrl () {
+      return item => {
+        if (item === null) {
           return {}
         }
-        let item = this.items[index]
-        return {name:this.$route.name,params:{slug:item.slug,id:item.id}}
+        let params = Object.keys(this.$route.params)
+          .map(param => ({ [param]: item[param] }))
+          .reduce((params, currentItem) => Object.assign(params, currentItem))
+        return { params }
       }
     }
   }

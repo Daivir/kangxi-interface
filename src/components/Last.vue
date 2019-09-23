@@ -5,9 +5,12 @@
         <v-hover v-slot:default="{ hover }">
           <v-card
             tile
+            flat
             style="overflow: hidden"
+            class="mx-auto"
             :to="{ name: 'product', params: { slug: product.slug, id: product.id } }"
             min-width="256"
+            max-width="444"
           >
             <v-img
               aspect-ratio="1"

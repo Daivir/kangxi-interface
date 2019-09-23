@@ -6,15 +6,10 @@
       :dense="$vuetify.breakpoint.mdAndDown"
       elevate-on-scroll
       hide-on-scroll
-      :extended="!($route.meta.navbar === 'no-tab')"
+      extended
       :scroll-threshold="threshold"
     >
-      <template v-if="!($route.meta.navbar === 'no-tab')">
-        <v-app-bar-nav-icon></v-app-bar-nav-icon>
-      </template>
-      <template v-else>
-        <v-btn icon raised @click="$router.go(-1)"><v-icon>mdi-arrow-left</v-icon></v-btn>
-      </template>
+      <v-app-bar-nav-icon></v-app-bar-nav-icon>
       <v-toolbar-title class="text-uppercase primary--text">
         galerie kangxi
       </v-toolbar-title>
@@ -22,7 +17,7 @@
       <v-btn icon>
         <v-icon>mdi-dots-vertical</v-icon>
       </v-btn>
-      <template v-if="!($route.meta.navbar === 'no-tab')" v-slot:extension>
+      <template v-slot:extension>
         <v-tabs
           :align-with-title="$vuetify.breakpoint.mdAndUp"
           :show-arrows="!$vuetify.breakpoint.mdAndUp"
@@ -32,7 +27,7 @@
           <v-tab :to="{ name: 'home' }">Accueil</v-tab>
           <v-tab :to="{ name: 'last' }">Nouveautés</v-tab>
           <v-tab
-            :to="{ name: 'category', params: { category_id: category.id } }"
+            :to="{ name: 'category', params: { category_name: category.name } }"
             v-for="(category, i) in categories"
             :key="i"
           >{{ category.name }}</v-tab>

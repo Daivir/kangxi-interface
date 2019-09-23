@@ -2,6 +2,7 @@ import Vue from 'vue'
 import App from './App.vue'
 import VueRouter from 'vue-router'
 import VueX from 'vuex'
+import VuexPersistence from 'vuex-persist'
 import vuetify from './plugins/vuetify'
 import axios from 'axios'
 import 'roboto-fontface/css/roboto/roboto-fontface.css'
@@ -36,16 +37,23 @@ const routes = [
         name: 'last'
       },
       {
-        path: 'category/:category_id',
+        path: ':category_name',
         component: load('Category'),
-        name: 'category'
+        name: 'category',
+        meta: {  showModal: false },
+        children: [
+          {
+            path: 'product/:slug/:id',
+            components: {
+              default: load('Category'),
+              product: load('Product')
+            },
+            name: 'product',
+            meta: { transitionName: 'slide', showModal: true }
+          }
+        ]
       },
-      {
-        path: 'product/:slug/:id',
-        component: load('Product'),
-        name: 'product',
-        meta: { transitionName: 'slide', navbar: 'no-tab' }
-      }
+
     ]
   }
 ]
@@ -61,15 +69,18 @@ function randomDate(start, end) {
 
 let datas_products = []
 
-for (let index = 1; index <= 16; index++) {
+for (let index = 1; index <= 30; index++) {
   datas_products.push({
     id: index,
     slug: 'product-' + index,
     createdAt: randomDate(new Date(2012, 0, 1), new Date()),
+    image: `https://picsum.photos/id/${index * 3 + 10}/1280/720`,
     name: 'Product' + index,
-    category_id: Math.floor(Math.random() * 3) + 1
+    category_name: `Category${Math.floor(Math.random() * 3) + 1}`
   })
 }
+
+console.log(JSON.stringify(datas_products))
 
 const SET_ITEMS = 'SET_PRODUCTS'
 
@@ -91,7 +102,7 @@ const products = {
       })
     },
     findBy: (state, getters) => currentRoute => getters.findAllBy(currentRoute.params)[0],
-    find: state => id => state.products.filter(product => product.id == id)
+    find: state => id => state.products.filter(product => product.id === parseInt(id))
   },
   mutations: {
     [SET_ITEMS]: (state, payload) => {
@@ -99,7 +110,7 @@ const products = {
     }
   },
   actions: {
-    get ({ dispatch, commit, getters, rootGetters }) {
+    get ({ dispatch, commit, rootState }) {
       axios.get('https://my-json-server.typicode.com/Daivir/api-test/products').then(response => {
         commit(SET_ITEMS, response.data)
       }, error => console.log(error))
@@ -129,12 +140,17 @@ const categories = {
   }
 }
 
+const vuexSession = new VuexPersistence({
+  storage: window.sessionStorage
+})
+
 const store = new VueX.Store({
   // strict: process.env.NODE_ENV !== 'production',
   modules: {
     products,
     categories
-  }
+  },
+  plugins: [vuexSession.plugin]
 })
 
 new Vue({
