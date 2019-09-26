@@ -5,14 +5,14 @@
       fullscreen
       persistent
       eager
-      :transition="false"
+      transition="dialog-slide-transition"
     >
-      <transition mode="in-out" name="slide-left">
-        <router-view name="product" :index="1"></router-view>
+      <transition mode="in-out" :name="transitionName">
+        <router-view name="product"></router-view>
       </transition>
     </v-dialog>
     <v-row>
-      <v-col v-for="product in products({ category_name: $route.params.category_name })" :key="product.id">
+      <v-col v-for="product in products({ category_id: $route.params.category_id })" :key="product.id">
         <v-hover v-slot:default="{ hover }">
           <v-card
             flat
@@ -23,7 +23,7 @@
             min-width="256"
           >
             <v-img
-              aspect-ratio="1"
+              :aspect-ratio="16/9"
               class="v-img--motion"
               :src="product.image"
               :lazy-src="`https://picsum.photos/id/${product.id * 3 + 10}/16/9`"
@@ -47,9 +47,11 @@
 
 <script>
 import { mapActions, mapGetters } from 'vuex'
+const DEFAULT_TRANSITION = 'fade'
 export default {
   data: () => ({
-    index: null
+    index: null,
+    transitionName: DEFAULT_TRANSITION
   }),
   methods: {
   },
@@ -58,7 +60,17 @@ export default {
       products: 'products/findAllBy',
       find: 'products/find'
     })
-  }
+  },
+  beforeRouteUpdate(to, from, next) {
+		let transitionName = to.meta.transitionName || from.meta.transitionName;
+		if (transitionName === "slide") {
+			const toDepth = to.path.split("/").filter(v => v !== "").length;
+			const fromDepth = from.path.split("/").filter(v => v !== "").length;
+			transitionName = toDepth < fromDepth ? "slide-right" : "slide-left";
+		}
+		this.transitionName = transitionName || DEFAULT_TRANSITION;
+		next();
+	}
 }
 </script>
 

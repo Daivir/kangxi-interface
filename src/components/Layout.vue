@@ -2,21 +2,21 @@
   <div id="default-layout">
     <v-app-bar
       app
-      short
+      :style="'' + [offsetTop >= threshold ? 'background: linear-gradient(to left, #2196F3, #3F51B5);' : 'background-color: transparent']"
+      dark
       :dense="$vuetify.breakpoint.mdAndDown"
       elevate-on-scroll
       hide-on-scroll
       extended
       :scroll-threshold="threshold"
     >
-      <v-app-bar-nav-icon></v-app-bar-nav-icon>
-      <v-toolbar-title class="text-uppercase primary--text">
-        galerie kangxi
-      </v-toolbar-title>
+      <v-toolbar-title
+        class="font-weight-light"
+        style="font-size: 1.125rem;"
+        v-text="'Galerie Kangxi'"
+      ></v-toolbar-title>
       <v-spacer/>
-      <v-btn icon>
-        <v-icon>mdi-dots-vertical</v-icon>
-      </v-btn>
+      <v-app-bar-nav-icon></v-app-bar-nav-icon>
       <template v-slot:extension>
         <v-tabs
           :align-with-title="$vuetify.breakpoint.mdAndUp"
@@ -27,7 +27,8 @@
           <v-tab :to="{ name: 'home' }">Accueil</v-tab>
           <v-tab :to="{ name: 'last' }">Nouveautés</v-tab>
           <v-tab
-            :to="{ name: 'category', params: { category_name: category.name } }"
+            optional
+            :to="{ name: 'category', params: { category_id: category.id } }"
             v-for="(category, i) in categories"
             :key="i"
           >{{ category.name }}</v-tab>
@@ -47,9 +48,44 @@
         </v-tabs>
       </template>
     </v-app-bar>
+    <v-carousel
+      show-arrows-on-hover
+      hide-delimiters
+      cycle
+      continuous
+      height="250"
+      v-resize="onResize"
+      :height="height"
+    >
+      <v-carousel-item
+        eager
+        v-for="n in 3"
+        :key="n"
+      >
+        <v-img
+          :height="height"
+          :aspect-ratio="16/9"
+          :src="`https://picsum.photos/1280/720?image=${n * 5 + 120}`"
+          :lazy-src="`https://picsum.photos/16/9?image=${n * 5 + 120}`"
+          class="grey lighten-2"
+        >
+          <template v-slot:placeholder>
+            <v-row
+              class="fill-height ma-0"
+              align="center"
+              justify="center"
+            >
+              <v-progress-circular indeterminate color="grey lighten-5"></v-progress-circular>
+            </v-row>
+          </template>
+        </v-img>
+      </v-carousel-item>
+    </v-carousel>
     <v-content>
       <transition :name="transitionName" mode="out-in">
-        <router-view/> <!-- :key="$route.fullPath" -->
+        <keep-alive>
+          <router-view/> <!-- :key="$route.fullPath" -->
+        </keep-alive>
       </transition>
     </v-content>
   </div>
@@ -66,7 +102,8 @@ export default {
     threshold: Number
   },
   data: () => ({
-    transitionName: DEFAULT_TRANSITION
+    transitionName: DEFAULT_TRANSITION,
+    height: null
   }),
   methods: {
     ...mapActions('categories', {
@@ -74,7 +111,13 @@ export default {
     }),
     ...mapActions('products', {
       getProducts: 'get'
-    })
+    }),
+    onResize () {
+      if (window.innerHeight < window.innerWidth) {
+        return this.height = window.innerHeight
+      }
+      return window.innerWidth / (9/16)
+    }
   },
   computed: {
     ...mapGetters({

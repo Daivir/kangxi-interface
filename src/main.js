@@ -22,6 +22,11 @@ const routes = [
   { path: '*', redirect: '/404' },
   { path: '/404', component: load('NotFound') },
   {
+    path: '/homepage',
+    component: load('HomePage'),
+    name: 'homepage'
+  },
+  {
     path: '/',
     component: load('Layout'),
     children: [
@@ -37,13 +42,13 @@ const routes = [
         name: 'last'
       },
       {
-        path: ':category_name',
+        path: 'category-:category_id',
         component: load('Category'),
         name: 'category',
         meta: {  showModal: false },
         children: [
           {
-            path: 'product/:slug/:id',
+            path: 'product-:id/:slug',
             components: {
               default: load('Category'),
               product: load('Product')
@@ -76,11 +81,11 @@ for (let index = 1; index <= 30; index++) {
     createdAt: randomDate(new Date(2012, 0, 1), new Date()),
     image: `https://picsum.photos/id/${index * 3 + 10}/1280/720`,
     name: 'Product' + index,
-    category_name: `Category${Math.floor(Math.random() * 3) + 1}`
+    category_id: Math.floor(Math.random() * 3) + 1
   })
 }
 
-console.log(JSON.stringify(datas_products))
+// console.log(JSON.stringify(datas_products))
 
 const SET_ITEMS = 'SET_PRODUCTS'
 
